@@ -11,7 +11,7 @@ LD="${CROSS}ld"
 DUMP="${CROSS}objdump"
 
 # Compiler flags
-CFLAGS="-Wall -I macros -march=rv32im -mabi=ilp32"
+CFLAGS="-Wall -I macros -march=rv32im_zicsr -mabi=ilp32"
 # Linker flags
 LDFLAGS="-nostartfiles -T linker.lds"
 
@@ -43,7 +43,7 @@ do
         exit 1
     fi
     # Create RAM vhdl files
-    python ../common/elf.py > build/ram.dump
+    python3 ../common/elf.py > build/ram.dump
 
     # Compile vhdl and simulate
     cd ../vhdl_src
