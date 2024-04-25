@@ -82,6 +82,7 @@ architecture behavioral of RISC is
 		rd_in			: in std_logic_vector(4 downto 0);
 		rd_we_in		: in std_logic;
 		alu_in			: in std_logic_vector(3 downto 0);
+		alu_len_in		: in std_logic_vector(1 downto 0);
 		branch_mode_in	: in std_logic_vector(1 downto 0);
 		comp_in			: in std_logic_vector(2 downto 0);
 		rs1_risk_in		: in std_logic_vector(1 downto 0);
@@ -106,6 +107,7 @@ architecture behavioral of RISC is
 		rd_out			: out std_logic_vector(4 downto 0);
 		rd_we_out		: out std_logic;
 		alu_out			: out std_logic_vector(3 downto 0);
+		alu_len_out		: out std_logic_vector(1 downto 0);
 		branch_mode_out	: out std_logic_vector(1 downto 0);
 		comp_out		: out std_logic_vector(2 downto 0);
 		rs1_risk_out	: out std_logic_vector(1 downto 0);
@@ -129,6 +131,7 @@ architecture behavioral of RISC is
 		op1     : in std_logic_vector(31 downto 0);
 		op2     : in std_logic_vector(31 downto 0);
 		mode    : in std_logic_vector(3 downto 0);
+		len     : in std_logic_vector(1 downto 0);
 		res     : out std_logic_vector(31 downto 0));
 	end component;
 
@@ -261,6 +264,7 @@ architecture behavioral of RISC is
 	signal opcode, funct7 : std_logic_vector(6 downto 0);
 	signal rd, rs1, rs2 : std_logic_vector(4 downto 0);
 	signal alu_op : std_logic_vector(3 downto 0);
+	signal alu_len : std_logic_vector(1 downto 0);
 	signal funct3 : std_logic_vector(2 downto 0);
 	signal op1_sel, rs1_risk_sel, rs2_risk_sel, branch_mode, mem_use_dec : std_logic_vector(1 downto 0);
 	signal decode_bank_we, rd_we_dec, op2_sel, mret_dec, zicsr_dec, bad_instr_dec, muldiv_dec : std_logic;
@@ -274,7 +278,8 @@ architecture behavioral of RISC is
 	signal pc_exe, pc4_exe, imm_exe, rs1_bank, rs2_bank, rs1_exe, rs2_exe, op1_exe, op2_exe, alu_res, result, pc_exe_out, csr_val_exe, csr_result, muldiv_res : std_logic_vector(31 downto 0);
 	signal csr_dest_exe : std_logic_vector(11 downto 0);
 	signal rd_exe : std_logic_vector(4 downto 0);
-	signal alu_exe : std_logic_vector(3 downto 0);
+	signal alu_op_exe : std_logic_vector(3 downto 0);
+	signal alu_len_exe : std_logic_vector(1 downto 0);
 	signal comp_exe : std_logic_vector(2 downto 0);
 	signal rs1_risk, rs2_risk, branch_exe, op1_sel_exe, mem_use_exe : std_logic_vector(1 downto 0);
 	signal rd_we_exe, exec_bank_we, comp_res, branch, op2_sel_exe, mret_exe, nop_exe, zicsr_exe, bad_jump_exe, muldiv_exe : std_logic;
@@ -524,7 +529,24 @@ begin
 						and opcode /= "0110011" -- Integer Integer base arithmetic
 						and opcode /= "0001111" -- TODO implement Fence transform into nop
 						and opcode /= "1110011" -- Zicsr extension and SWI
+						and opcode /= "1110111"
 	else '1' when opcode = "0010011" and (funct3 = "001" or funct3 = "101") and shamt(5) = '1' -- Instructions with shamt[5] are illegal
+	else '1' when opcode = "1110111" and funct3 /= "000" -- invalid P instr
+	else '1' when opcode = "1110111" and funct3 = "000" 
+											and funct7 /= "0100000" -- P instr != ADD16
+											and funct7 /= "0100100" -- P instr != ADD8
+											and funct7 /= "0101010" -- P instr != SLL16
+											and funct7 /= "0101110" -- P instr != SLL8
+											and funct7 /= "0000110" -- P instr != SLT16
+											and funct7 /= "0000111" -- P instr != SLT8
+											and funct7 /= "0010110" -- P instr != SLTU16
+											and funct7 /= "0010111" -- P instr != SLTU8
+											and funct7 /= "0101001" -- P instr != SRL16
+											and funct7 /= "0101101" -- P instr != SRL8
+											and funct7 /= "0101000" -- P instr != SRA16
+											and funct7 /= "0101100" -- P instr != SRA8
+											and funct7 /= "0100001" -- P instr != SUB16
+											and funct7 /= "0100101" -- P instr != SUB8
 	else '0';
 
 	-- Type of immediate
@@ -544,7 +566,33 @@ begin
 	else		"0000" when opcode = "0110111" or opcode = "0010111" or opcode = "0000011" 
 	else		"0000" when opcode = "0100011" or opcode = "1100011" or opcode = "1101111"
 	else 		"0000" when opcode = "1100111"
+	else 		"0000" when opcode = "1110111" and funct3 = "000" and (funct7 = "0100000" or funct7 = "0100100") -- ADD when ADD16 or ADD8
+	else 		"0001" when opcode = "1110111" and funct3 = "000" and (funct7 = "0101010" or funct7 = "0101110") -- SLL when SLL16 or SLL8
+	else 		"0010" when opcode = "1110111" and funct3 = "000" and (funct7 = "0000110" or funct7 = "0000111") -- SLT when SLT16 or SLT8
+	else 		"0011" when opcode = "1110111" and funct3 = "000" and (funct7 = "0010110" or funct7 = "0010111") -- SLTU when SLTU16 or SLTU8
+	else 		"0101" when opcode = "1110111" and funct3 = "000" and (funct7 = "0101001" or funct7 = "0101101") -- SRL when SRL16 o SRL8
+	else 		"1000" when opcode = "1110111" and funct3 = "000" and (funct7 = "0101000" or funct7 = "0101100") -- SRA when SRA16 or SRA8
+	else 		"1001" when opcode = "1110111" and funct3 = "000" and (funct7 = "0100001" or funct7 = "0100101") -- SUB when SUB16 or SUB8
 	else 		"0"&funct3;
+	alu_len <= 	"10" when opcode = "1110111" and funct3 = "000" and 						-- 8 bit ALU when
+																(funct7 = "0100100" or  	-- ADD8
+																 funct7 = "0101110" or 		-- SLL8
+																 funct7 = "0000111" or		-- SLT8
+																 funct7 = "0010111" or		-- SLTU8
+																 funct7 = "0101101" or		-- SRL8
+																 funct7 = "0101100" or		-- SRA8
+																 funct7 = "0100101") 		-- SUB8
+
+				else "01" when opcode = "1110111" and funct3 = "000" and 						-- 16 bit ALU when
+																(funct7 = "0100000" or  	-- ADD16
+																 funct7 = "0101010" or 		-- SLL16
+																 funct7 = "0000110" or		-- SLT16
+																 funct7 = "0010110" or		-- SLTU16
+																 funct7 = "0101001" or		-- SRL16
+																 funct7 = "0101000" or		-- SRA16
+																 funct7 = "0100001") 		-- SUB6
+
+				else "00";																	-- 32 bit ALU in other cases
 
 	-- MULDIV op?
 	muldiv_dec <= '1' when opcode = "0110011" and funct7 = "0000001" else '0';
@@ -685,6 +733,7 @@ begin
 		rd_in => rd,
 		rd_we_in => rd_we_dec,
 		alu_in => alu_op,
+		alu_len_in => alu_len,
 		branch_mode_in => branch_mode,
 		comp_in => funct3,
 		rs1_risk_in => rs1_risk_sel,
@@ -708,7 +757,8 @@ begin
 		imm_out => imm_exe,
 		rd_out => rd_exe,
 		rd_we_out => rd_we_exe,
-		alu_out => alu_exe,
+		alu_out => alu_op_exe,
+		alu_len_out => alu_len_exe,
 		branch_mode_out => branch_exe,
 		comp_out => comp_exe,
 		rs1_risk_out => rs1_risk,
@@ -764,7 +814,8 @@ begin
 	PORT MAP (
 		op1 => op1_exe,
 		op2 => op2_exe,
-		mode => alu_exe,
+		mode => alu_op_exe,
+		len => alu_len_exe,
 		res => alu_res
 	);
 

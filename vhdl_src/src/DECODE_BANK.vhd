@@ -19,6 +19,7 @@ port (
 	rd_in			: in std_logic_vector(4 downto 0);
 	rd_we_in		: in std_logic;
 	alu_in			: in std_logic_vector(3 downto 0);
+	alu_len_in		: in std_logic_vector(1 downto 0);
 	branch_mode_in	: in std_logic_vector(1 downto 0);
 	comp_in			: in std_logic_vector(2 downto 0);
 	rs1_risk_in		: in std_logic_vector(1 downto 0);
@@ -43,6 +44,7 @@ port (
 	rd_out			: out std_logic_vector(4 downto 0);
 	rd_we_out		: out std_logic;
 	alu_out			: out std_logic_vector(3 downto 0);
+	alu_len_out		: out std_logic_vector(1 downto 0);
 	branch_mode_out	: out std_logic_vector(1 downto 0);
 	comp_out		: out std_logic_vector(2 downto 0);
 	rs1_risk_out	: out std_logic_vector(1 downto 0);
