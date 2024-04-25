@@ -44,7 +44,8 @@ architecture behavioral of ALU_RISC is
 
 	signal op1_16_0, op1_16_1 : std_logic_vector(15 downto 0);
 	signal op2_16_0, op2_16_1 : std_logic_vector(15 downto 0);
-
+	
+	signal res8_0, res8_1, res8_2, res8_3 : std_logic_vector(7 downto 0);
 	signal res16_0, res16_1 : std_logic_vector(15 downto 0);
 
 	signal op1_8_0, op1_8_1, op1_8_2, op1_8_3 : std_logic_vector(7 downto 0);
@@ -158,7 +159,7 @@ begin
 
 	res16_0 <= std_logic_vector(signed(op1_16_0) + signed(op2_16_0)) when mode = "0000"
 	else 	std_logic_vector(shift_left(unsigned(op1_16_0), to_integer(unsigned(op2(3 downto 0))))) when mode = "0001"
-	else	slt_16_02 when mode = "0010"
+	else	slt_16_0 when mode = "0010"
 	else	sltu_16_0 when mode = "0011"
 	else 	std_logic_vector(shift_right(unsigned(op1_16_0), to_integer(unsigned(op2(3 downto 0))))) when mode = "0101"
 	else	std_logic_vector(shift_right(signed(op1_16_0), to_integer(unsigned(op2(3 downto 0))))) when mode = "1000"
@@ -178,8 +179,8 @@ begin
 
 	res32 <= std_logic_vector(signed(op1) + signed(op2)) when mode = "0000"
 	else 	std_logic_vector(shift_left(unsigned(op1), to_integer(unsigned(op2(4 downto 0))))) when mode = "0001"
-	else	slt32 when mode = "0010"
-	else	sltu32 when mode = "0011"
+	else	slt_32 when mode = "0010"
+	else	sltu_32 when mode = "0011"
 	else	op1 xor op2 when mode = "0100"
 	else 	std_logic_vector(shift_right(unsigned(op1), to_integer(unsigned(op2(4 downto 0))))) when mode = "0101"
 	else 	op1 or op2 when mode = "0110"
