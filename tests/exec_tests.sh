@@ -5,7 +5,7 @@ GREEN="\033[0;32m"
 NC="\033[0m"
 
 # Compiler definitions
-CROSS="riscv32-unknown-elf-"
+CROSS="/opt/riscv_custom/bin/riscv32-unknown-elf-"
 CC="${CROSS}gcc"
 LD="${CROSS}ld"
 DUMP="${CROSS}objdump"
@@ -20,7 +20,7 @@ rm -rf build
 mkdir build
 
 # Test src
-rv_tests=$(ls rv32ui/*.S rv32mi/*.S rv32um/*.S)
+rv_tests=$(ls rv32ui/*.S rv32mi/*.S rv32um/*.S rv32usimd/*.S)
 
 # If there is an argument, use as regex for test selection
 if [[ $1 ]]
