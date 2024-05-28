@@ -69,6 +69,7 @@ architecture behavioral of DECODE_BANK_RISC is
 	signal csr_dest : std_logic_vector(11 downto 0);
 	signal rd : std_logic_vector(4 downto 0);
 	signal alu : std_logic_vector(3 downto 0);
+	signal alu_len : std_logic_vector(1 downto 0);
 	signal comp : std_logic_vector(2 downto 0);
 	signal rs1_risk, rs2_risk, branch_mode, op1_sel, mem_use : std_logic_vector(1 downto 0);
 	signal rd_we, op2_sel, mret, zicsr, ecall, ebreak, bad_instr, muldiv : std_logic;
@@ -93,6 +94,7 @@ begin
 				imm <= (others => '0');
 				rd <= (others => '0');
 				alu <= (others => '0');
+				alu_len <= (others => '0');
 				comp <= (others => '0');
 				rs1_risk <= (others => '0');
 				rs2_risk <= (others => '0');
@@ -117,6 +119,7 @@ begin
 				imm <= imm_in;
 				rd <= rd_in;
 				alu <= alu_in;
+				alu_len <= alu_len_in;
 				comp <= comp_in;
 				rs1_risk <= rs1_risk_in;
 				rs2_risk <= rs2_risk_in;
@@ -146,6 +149,7 @@ begin
 	imm_out <= imm;
 	rd_out <= rd;
 	alu_out <= alu;
+	alu_len_out <= alu_len;
 	comp_out <= comp;
 	rs1_risk_out <= rs1_risk;
 	rs2_risk_out <= rs2_risk;

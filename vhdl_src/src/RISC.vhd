@@ -529,7 +529,7 @@ begin
 						and opcode /= "0110011" -- Integer Integer base arithmetic
 						and opcode /= "0001111" -- TODO implement Fence transform into nop
 						and opcode /= "1110011" -- Zicsr extension and SWI
-						and opcode /= "1110111"
+						and opcode /= "1110111" -- SIMD custom extension
 	else '1' when opcode = "0010011" and (funct3 = "001" or funct3 = "101") and shamt(5) = '1' -- Instructions with shamt[5] are illegal
 	else '1' when opcode = "1110111" and funct3 /= "000" -- invalid P instr
 	else '1' when opcode = "1110111" and funct3 = "000" 
@@ -638,7 +638,7 @@ begin
 	-- "00" register
 	-- "01" pc
 	-- "10" 0
-	op1_sel <=	"00" when opcode = "0010011" or opcode = "0110011" or opcode = "0000011"
+	op1_sel <=	"00" when opcode = "0010011" or opcode = "0110011" or opcode = "0000011" or opcode = "1110111"
 	else		"00" when opcode = "0100011" or opcode = "1100111"
 	else		"01" when opcode = "0010111" or opcode = "1101111" or opcode = "1100011"
 	else		"10"; 
@@ -646,7 +646,7 @@ begin
 	-- operator 2
 	-- '0' register
 	-- '1' immediate
-	op2_sel <=	'0' when opcode = "0110011"
+	op2_sel <=	'0' when opcode = "0110011" or opcode = "1110111"
 	else		'1';
 
 	-- Risk detection
