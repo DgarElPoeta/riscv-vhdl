@@ -31,6 +31,8 @@ fi
 num_tests=$(echo "$rv_tests" | wc -l)
 num_pass="1"
 
+cp vhdl/PRINT_REG.vhd ../vhdl_src/src/PRINT_REG.vhd
+
 for test in $rv_tests
 do
     echo "COMPILING TEST $test [$num_pass/$num_tests]"
