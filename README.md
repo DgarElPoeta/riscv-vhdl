@@ -1,19 +1,48 @@
 # riscv-vhdl
 
-This project is an VHDL implementation of a 5 stage RISC-V CPU with support for the RV32I Base Integer Instruction Set, M Standard Extension for Integer
+This project is based on a VHDL implementation of a 5 stage RISC-V CPU with support for the RV32I Base Integer Instruction Set, M Standard Extension for Integer
 Multiplication and Division, Zicsr Control and Status Register
-(CSR) Instructions, Machine mode and User mode.
+(CSR) Instructions, Machine mode and User mode. This base CPU design can be found in [](https://github.com/Samulix20/riscv-vhdl). This base CPU design has been modified to support a custom SIMD extension.
 
-This project contains an automated set of tests for the instructions and extensions implemented. It was created using unit tests from [riscv-software-src/riscv-tests](https://github.com/riscv-software-src/riscv-tests). 
+This project contains an automated set of tests for the instructions and extensions implemented. It was created using unit tests from [riscv-software-src/riscv-tests](https://github.com/riscv-software-src/riscv-tests).
+
+It also contains an automated set of benchmarks to compare between a version that uses the 
+instructions of the new SIMD extension and a version that don't uses them.
 
 This project also contains a simple example program written in C with a set of utils for its compilation and simulation.
 
 ## Software requirements
 
-- [GHDL 2.0](https://github.com/ghdl/ghdl), an open-source analyzer, compiler and simulator for VHDL.
-- The [RISC-V GNU Compiler Toolchain 12.2](https://github.com/riscv-collab/riscv-gnu-toolchain) for cross-compiling.
+- [GHDL 2.0](https://github.com/ghdl/ghdl), an open-source analyzer, compiler and simulator for VHDL. The backend version of ghdl used in this project is llvm.
+- The [RISC-V GNU Compiler Toolchain 12.2](https://github.com/riscv-collab/riscv-gnu-toolchain) for cross-compiling. Additionally, it is necessary to modify the GNU Compiler to recognise the new instructions of the custom SIMD extension by modifying two files: <em>riscv-gnu-toolchain/binutils/opcodes/riscv-opc.c</em> and <em>riscv-gnu-toolchain/binutils/include/opcode/riscv-opc.h</em>. You can get the files for this project in <em>riscv-compiler-files</em> directory.
 - Python 3.10
   - [Pyelftools](https://github.com/eliben/pyelftools) for ELF file parsing.
+
+## SIMD extension specification
+
+The specification of the SIMD extension implemented is based on [RISC-V "P" Extension Proposal](https://github.com/riscv/riscv-p-spec/blob/master/P-ext-proposal.pdf)
+
+The SIMD extension is composed of the following 14 instructions: 
+    - ADD16
+    - ADD8
+    - SLL16
+    - SLL8
+    - SLT16
+    - SLT8
+    - SLTU16
+    - SLTU8
+    - SRL16
+    - SRL8
+    - SRA16
+    - SRA8
+    - SUB16
+    - SUB8
+
+The following diagram shows the codification format of the 14 instructions.
+![](diagrams/SIMD_codification.png)
+
+The following diagrama shows how each instruction works.
+![](diagrams/SIMD_behaviour.png)
 
 ## CPU design
 
@@ -37,7 +66,7 @@ The VHDL source files of the whole system can be found at ``vhdl_src/src``.
 
 The compilation flags for ``riscv32-unknown-elf-gcc`` required for this platform are:
 
-    -march=rv32im -mabi=ilp32
+    -march=rv32im_zicsr -mabi=ilp32
 
 The linking must be done using a linking script that respects the memory size and map of the platform. Valid scripts can be found at ``c_src/linker.lds`` and ``tests/linker.lds``.
 
@@ -64,6 +93,12 @@ The ``tests`` directory contains the source files of the test programs and the `
 To execute only the tests which name match a certain regular expression run:
 
     $ ./exec_test.sh REGEX
+
+## Benchmarks
+
+The ``benchmarks`` directory contains the source files of the benchmarks programs and the ``exec_benchmarks.sh`` script. To execute all benchmarks run in the ``benchmarks`` directory:
+
+    $ ./exec_benchmarks.sh
 
 ## C Example
 
